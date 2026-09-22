@@ -6,11 +6,14 @@ import java.util.List;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 
 public interface UserRepository {
     Flowable<List<User>> getUsers();
 
     Flowable<List<User>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
+
+    Maybe<User> getUserByCode(String code);
 
     Completable saveUser(User user);
 

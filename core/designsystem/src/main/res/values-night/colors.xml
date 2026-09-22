@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="theme_primary">@color/purple_80</color>
+    <color name="theme_secondary">@color/purple_grey_80</color>
+    <color name="theme_tertiary">@color/pink_80</color>
+</resources>

@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 
 public class UserRepositoryImpl implements UserRepository {
     private final UserDao userDao;
@@ -41,6 +42,13 @@ public class UserRepositoryImpl implements UserRepository {
             }
             return users;
         });
+    }
+
+    @Override
+    public Maybe<User> getUserByCode(String code) {
+        return userDao.getUserByCode(code).flatMapMaybe(entities -> entities.isEmpty()
+                ? Maybe.empty()
+                : Maybe.just(mapEntityToUser(entities.get(0))));
     }
 
     @Override

@@ -25,8 +25,8 @@
         android:id="@+id/tvStatusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
         android:textColor="@color/status_visited_text"
-        android:textSize="11sp"
         android:textStyle="bold"
         tools:text="✓ Visited 09:15 AM" />
 </LinearLayout>

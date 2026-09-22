@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
@@ -24,4 +26,16 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
+    implementation(libs.androidx.lifecycle.livedata)
+    implementation(libs.coil)
+
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+
+    implementation(libs.hilt.android)
+    "ksp"(libs.hilt.compiler)
+
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:models"))
+    implementation(project(":core:domain"))
 }

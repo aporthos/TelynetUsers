@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface UserDao {
@@ -28,6 +29,9 @@ public interface UserDao {
            "CASE WHEN :orderBy = 'code_desc' THEN code END DESC, " +
            "code ASC")
     Flowable<List<UserEntity>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
+
+    @Query("SELECT * FROM users WHERE code = :code LIMIT 1")
+    Single<List<UserEntity>> getUserByCode(String code);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Completable insertUser(UserEntity user);

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        XML counterpart of TelynetUsersTheme for View-based screens. Like lightColorScheme()/darkColorScheme()
+        in Theme.kt, only primary/secondary/tertiary are overridden; every other role keeps the Material 3
+        baseline, which Theme.Material3 shares with Compose. Call DynamicColors.applyToActivityIfAvailable()
+        to get the same Android 12+ dynamic color behavior.
+    -->
+    <style name="Theme.TelynetUsers.Views" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/theme_primary</item>
+        <item name="colorSecondary">@color/theme_secondary</item>
+        <item name="colorTertiary">@color/theme_tertiary</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+    </style>
+
+    <style name="ShapeAppearance.TelynetUsers.Corner16" parent="">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.TelynetUsers.Circle" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

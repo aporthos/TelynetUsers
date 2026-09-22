@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="status_visited_bg">#134E48</color>
+    <color name="status_visited_text">#5EEAD4</color>
+    <color name="status_visited_dot">#34D399</color>
+
+    <color name="status_pending_bg">#4A2410</color>
+    <color name="status_pending_text">#FDBA74</color>
+    <color name="status_pending_dot">#FB923C</color>
+</resources>
