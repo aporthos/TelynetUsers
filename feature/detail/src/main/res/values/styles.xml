@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Application Theme -->
+    <style name="Theme.FieldDirectory" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/md_theme_light_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/md_theme_light_surface</item>
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+    </style>
+
+    <!-- Shape Styles -->
+    <style name="ShapeAppearance.App.Corner16" parent="">
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="ShapeAppearance.App.CornerPill" parent="">
+        <item name="cornerSize">100dp</item>
+    </style>
+    <style name="ShapeAppearance.App.Circle" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>
