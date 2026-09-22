@@ -18,6 +18,15 @@ public interface UserDao {
     @Query("SELECT * FROM users")
     Flowable<List<UserEntity>> getAllUsers();
 
+    @Query("SELECT * FROM users " +
+           "WHERE (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%') " +
+           "AND (:filterVisited = -1 OR (:filterVisited = 1 AND isVisited = 1) OR (:filterVisited = 0 AND isVisited = 0)) " +
+           "ORDER BY " +
+           "CASE WHEN :orderBy = 'name' THEN name END ASC, " +
+           "CASE WHEN :orderBy = 'code' THEN code END ASC, " +
+           "code ASC")
+    Flowable<List<UserEntity>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Completable insertUser(UserEntity user);
 

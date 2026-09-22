@@ -20,4 +20,8 @@ public class GetUsersUseCase {
     public Flowable<List<User>> execute() {
         return userRepository.getUsers();
     }
+
+    public Flowable<List<User>> execute(String searchQuery, int filterVisited, String orderBy) {
+        return userRepository.getUsersFiltered(searchQuery, filterVisited, orderBy);
+    }
 }

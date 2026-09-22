@@ -33,6 +33,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Flowable<List<User>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy) {
+        return userDao.getUsersFiltered(searchQuery, filterVisited, orderBy).map(entities -> {
+            List<User> users = new ArrayList<>();
+            for (UserEntity entity : entities) {
+                users.add(new User(entity.getCode(), entity.getName(), entity.getEmail(), entity.getPhone(), entity.isVisited()));
+            }
+            return users;
+        });
+    }
+
+    @Override
     public Completable saveUser(User user) {
         return userDao.insertUser(new UserEntity(
                 user.getCode(),

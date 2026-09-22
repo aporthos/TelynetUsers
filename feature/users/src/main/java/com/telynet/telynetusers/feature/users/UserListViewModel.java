@@ -18,12 +18,14 @@ public class UserListViewModel extends ViewModel {
     private final GetUsersUseCase getUsersUseCase;
     private final MutableStateFlow<UserListUiState> _uiState;
     private final StateFlow<UserListUiState> uiState;
+
     private final CompositeDisposable disposables = new CompositeDisposable();
+    private Disposable activeDisposable;
 
     @Inject
     public UserListViewModel(GetUsersUseCase getUsersUseCase) {
         this.getUsersUseCase = getUsersUseCase;
-        this._uiState = StateFlowKt.MutableStateFlow(UserListUiState.Loading.INSTANCE);
+        this._uiState = StateFlowKt.MutableStateFlow(UserListUiState.initial());
         this.uiState = _uiState;
         loadUsers();
     }
@@ -32,19 +34,42 @@ public class UserListViewModel extends ViewModel {
         return uiState;
     }
 
+    public void processIntent(UserListIntent intent) {
+        UserListUiState currentState = _uiState.getValue();
+        if (intent instanceof UserListIntent.SearchQueryChanged) {
+            _uiState.setValue(currentState.copyWith(null, ((UserListIntent.SearchQueryChanged) intent).getQuery(), null, null));
+            loadUsers();
+        } else if (intent instanceof UserListIntent.FilterVisitedChanged) {
+            _uiState.setValue(currentState.copyWith(null, null, ((UserListIntent.FilterVisitedChanged) intent).getFilter(), null));
+            loadUsers();
+        } else if (intent instanceof UserListIntent.OrderByChanged) {
+            _uiState.setValue(currentState.copyWith(null, null, null, ((UserListIntent.OrderByChanged) intent).getOrderBy()));
+            loadUsers();
+        }
+    }
+
     private void loadUsers() {
-        _uiState.setValue(UserListUiState.Loading.INSTANCE);
-        Disposable disposable = getUsersUseCase.execute()
+        if (activeDisposable != null && !activeDisposable.isDisposed()) {
+            disposables.remove(activeDisposable);
+        }
+        UserListUiState currentState = _uiState.getValue();
+        _uiState.setValue(currentState.copyWith(UserListUiState.Result.Loading.INSTANCE, null, null, null));
+        
+        activeDisposable = getUsersUseCase.execute(currentState.getSearchQuery(), currentState.getFilterVisited(), currentState.getOrderBy())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        userList -> _uiState.setValue(new UserListUiState.Success(userList)),
+                        userList -> {
+                            UserListUiState latestState = _uiState.getValue();
+                            _uiState.setValue(latestState.copyWith(new UserListUiState.Result.Success(userList), null, null, null));
+                        },
                         error -> {
+                            UserListUiState latestState = _uiState.getValue();
                             String message = error.getLocalizedMessage() != null ? error.getLocalizedMessage() : "Unknown error occurred";
-                            _uiState.setValue(new UserListUiState.Error(message));
+                            _uiState.setValue(latestState.copyWith(new UserListUiState.Result.Error(message), null, null, null));
                         }
                 );
-        disposables.add(disposable);
+        disposables.add(activeDisposable);
     }
 
     @Override

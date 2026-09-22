@@ -10,6 +10,8 @@ import io.reactivex.rxjava3.core.Flowable;
 public interface UserRepository {
     Flowable<List<User>> getUsers();
 
+    Flowable<List<User>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
+
     Completable saveUser(User user);
 
     Completable deleteUser(User user);
