@@ -12,28 +12,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SearchBar() {
-    var searchQuery by remember { mutableStateOf("") }
-
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+) {
     OutlinedTextField(
-        value = searchQuery,
-        onValueChange = { searchQuery = it },
+        value = query,
+        onValueChange = onQueryChange,
         placeholder = { Text("Search by name...") },
         leadingIcon = {
             Icon(Icons.Default.Search, contentDescription = "Search")
         },
         trailingIcon = {
-            if (searchQuery.isNotEmpty()) {
-                IconButton(onClick = { searchQuery = "" }) {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
                     Icon(Icons.Default.Close, contentDescription = "Clear")
                 }
             }

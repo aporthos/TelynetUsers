@@ -1,15 +1,21 @@
 package com.telynet.telynetusers.feature.users;
 
 import androidx.lifecycle.ViewModel;
+
 import com.telynet.telynetusers.core.domain.usecase.GetUsersUseCase;
+
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+
+import com.telynet.telynetusers.core.models.entity.User;
+
 import kotlinx.coroutines.flow.MutableStateFlow;
 import kotlinx.coroutines.flow.StateFlow;
 import kotlinx.coroutines.flow.StateFlowKt;
+
 import javax.inject.Inject;
 
 @HiltViewModel
@@ -27,6 +33,7 @@ public class UserListViewModel extends ViewModel {
         this.getUsersUseCase = getUsersUseCase;
         this._uiState = StateFlowKt.MutableStateFlow(UserListUiState.initial());
         this.uiState = _uiState;
+        loadCounts();
         loadUsers();
     }
 
@@ -53,8 +60,10 @@ public class UserListViewModel extends ViewModel {
             disposables.remove(activeDisposable);
         }
         UserListUiState currentState = _uiState.getValue();
-        _uiState.setValue(currentState.copyWith(UserListUiState.Result.Loading.INSTANCE, null, null, null));
-        
+        if (!(currentState.getResult() instanceof UserListUiState.Result.Success)) {
+            _uiState.setValue(currentState.copyWith(UserListUiState.Result.Loading.INSTANCE, null, null, null));
+        }
+
         activeDisposable = getUsersUseCase.execute(currentState.getSearchQuery(), currentState.getFilterVisited(), currentState.getOrderBy())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -70,6 +79,25 @@ public class UserListViewModel extends ViewModel {
                         }
                 );
         disposables.add(activeDisposable);
+    }
+
+    private void loadCounts() {
+        disposables.add(getUsersUseCase.execute()
+                .map(users -> {
+                    int visited = 0;
+                    for (User user : users) {
+                        if (user.isVisited()) visited++;
+                    }
+                    return new int[]{users.size(), visited};
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        counts -> _uiState.setValue(_uiState.getValue().withCounts(counts[0], counts[1])),
+                        error -> {
+
+                        }
+                ));
     }
 
     @Override

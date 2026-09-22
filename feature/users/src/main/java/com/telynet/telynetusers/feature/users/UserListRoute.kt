@@ -19,9 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,19 +32,32 @@ import com.telynet.telynetusers.core.ui.UserListItemCard
 import com.telynet.telynetusers.feature.users.components.QuickFilters
 import com.telynet.telynetusers.feature.users.components.SearchBar
 
-enum class VisitFilter {
-    ALL,
-    VISITED,
-    NOT_VISITED,
+enum class VisitFilter(
+    val value: Int,
+) {
+    ALL(-1),
+    VISITED(1),
+    NOT_VISITED(0),
+    ;
+
+    companion object {
+        fun fromValue(value: Int): VisitFilter = entries.firstOrNull { it.value == value } ?: ALL
+    }
 }
 
 enum class SortOption(
     val label: String,
+    val key: String,
 ) {
-    NAME_ASC("Name (A-Z)"),
-    NAME_DESC("Name (Z-A)"),
-    CODE_ASC("Code (Asc)"),
-    CODE_DESC("Code (Desc)"),
+    NAME_ASC("Name (A-Z)", "name"),
+    NAME_DESC("Name (Z-A)", "name_desc"),
+    CODE_ASC("Code (Asc)", "code"),
+    CODE_DESC("Code (Desc)", "code_desc"),
+    ;
+
+    companion object {
+        fun fromKey(key: String): SortOption = entries.firstOrNull { it.key == key } ?: NAME_ASC
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,63 +65,40 @@ enum class SortOption(
 fun UserListRoute(
     viewModel: UserListViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
+    onUserClick: (User) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    UserListScreen(uiState)
+    UserListScreen(
+        modifier = modifier,
+        uiState = uiState,
+        onIntent = viewModel::processIntent,
+        onUserClick = onUserClick,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserListScreen(uiState: UserListUiState) {
-    val context = LocalContext.current
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(VisitFilter.ALL) }
-    var selectedSort by remember { mutableStateOf(SortOption.NAME_ASC) }
-
-    val userList =
-        when (val result = uiState.result) {
-            is UserListUiState.Result.Success -> result.users
-            else -> emptyList()
-        }
-    val visitedCount = remember(userList) { userList.count { it.isVisited } }
-    val pendingCount = remember(userList) { userList.count { !it.isVisited } }
-
-    // Filter & Sort Logic
-    val filteredUsers =
-        remember(userList, searchQuery, selectedFilter, selectedSort) {
-            userList
-                .filter { user ->
-                    val matchesQuery =
-                        user.name.contains(searchQuery, ignoreCase = true) ||
-                            user.code.contains(searchQuery, ignoreCase = true) ||
-                            user.address.contains(searchQuery, ignoreCase = true)
-
-                    val matchesStatus =
-                        when (selectedFilter) {
-                            VisitFilter.ALL -> true
-                            VisitFilter.VISITED -> user.isVisited
-                            VisitFilter.NOT_VISITED -> !user.isVisited
-                        }
-                    matchesQuery && matchesStatus
-                }.let { list ->
-                    when (selectedSort) {
-                        SortOption.NAME_ASC -> list.sortedBy { it.name }
-                        SortOption.NAME_DESC -> list.sortedByDescending { it.name }
-                        SortOption.CODE_ASC -> list.sortedBy { it.code }
-                        SortOption.CODE_DESC -> list.sortedByDescending { it.code }
-                    }
-                }
-        }
-
+private fun UserListScreen(
+    modifier: Modifier = Modifier,
+    uiState: UserListUiState,
+    onIntent: (UserListIntent) -> Unit,
+    onUserClick: (User) -> Unit,
+) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
                 modifier =
                     Modifier
                         .fillMaxWidth(),
                 title = {
-                    SearchBar()
+                    SearchBar(
+                        query = uiState.searchQuery,
+                        onQueryChange = { query ->
+                            onIntent(UserListIntent.SearchQueryChanged(query))
+                        },
+                    )
                 },
             )
         },
@@ -122,7 +109,15 @@ fun UserListScreen(uiState: UserListUiState) {
                         .padding(innerPadding)
                         .fillMaxSize(),
             ) {
-                QuickFilters(uiState)
+                QuickFilters(
+                    uiState = uiState,
+                    onFilterSelected = { filter ->
+                        onIntent(UserListIntent.FilterVisitedChanged(filter.value))
+                    },
+                    onSortSelected = { option ->
+                        onIntent(UserListIntent.OrderByChanged(option.key))
+                    },
+                )
                 when (val result = uiState.result) {
                     is UserListUiState.Result.Loading -> {
                         CircularProgressIndicator()
@@ -140,7 +135,7 @@ fun UserListScreen(uiState: UserListUiState) {
                         if (result.users.isEmpty()) {
                             Text("No users found.")
                         } else {
-                            UserList(result.users)
+                            UserList(result.users, onUserClick)
                         }
                     }
                 }
@@ -150,7 +145,10 @@ fun UserListScreen(uiState: UserListUiState) {
 }
 
 @Composable
-fun UserList(users: List<User>) {
+fun UserList(
+    users: List<User>,
+    onUserClick: (User) -> Unit,
+) {
     val context = LocalContext.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -161,7 +159,7 @@ fun UserList(users: List<User>) {
             UserListItemCard(
                 user = user,
                 onClick = {
-//                    onUserClick(user)
+                    onUserClick(user)
                 },
                 onCallClick = {
                     launchDialer(context, user.phone)
@@ -211,6 +209,7 @@ fun launchGoogleMaps(
 fun UserListPreview() {
     TelynetUsersTheme {
         UserList(
+            onUserClick = {},
             users =
                 listOf(
                     User(

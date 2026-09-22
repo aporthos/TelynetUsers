@@ -23,7 +23,9 @@ public interface UserDao {
            "AND (:filterVisited = -1 OR (:filterVisited = 1 AND isVisited = 1) OR (:filterVisited = 0 AND isVisited = 0)) " +
            "ORDER BY " +
            "CASE WHEN :orderBy = 'name' THEN name END ASC, " +
+           "CASE WHEN :orderBy = 'name_desc' THEN name END DESC, " +
            "CASE WHEN :orderBy = 'code' THEN code END ASC, " +
+           "CASE WHEN :orderBy = 'code_desc' THEN code END DESC, " +
            "code ASC")
     Flowable<List<UserEntity>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
 

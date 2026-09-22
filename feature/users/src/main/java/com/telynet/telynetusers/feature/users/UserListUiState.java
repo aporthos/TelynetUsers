@@ -37,21 +37,27 @@ public class UserListUiState {
     private final String searchQuery;
     private final int filterVisited;
     private final String orderBy;
+    private final int totalCount;
+    private final int visitedCount;
 
     public UserListUiState(
             Result result,
             String searchQuery,
             int filterVisited,
-            String orderBy
+            String orderBy,
+            int totalCount,
+            int visitedCount
     ) {
         this.result = result != null ? result : Result.Loading.INSTANCE;
         this.searchQuery = searchQuery != null ? searchQuery : "";
         this.filterVisited = filterVisited;
         this.orderBy = orderBy != null ? orderBy : "name";
+        this.totalCount = totalCount;
+        this.visitedCount = visitedCount;
     }
 
     public static UserListUiState initial() {
-        return new UserListUiState(Result.Loading.INSTANCE, "", -1, "name");
+        return new UserListUiState(Result.Loading.INSTANCE, "", -1, "name", 0, 0);
     }
 
     public Result getResult() {
@@ -70,6 +76,18 @@ public class UserListUiState {
         return orderBy;
     }
 
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public int getVisitedCount() {
+        return visitedCount;
+    }
+
+    public int getNotVisitedCount() {
+        return totalCount - visitedCount;
+    }
+
     public UserListUiState copyWith(
             Result result,
             String searchQuery,
@@ -80,7 +98,13 @@ public class UserListUiState {
                 result != null ? result : this.result,
                 searchQuery != null ? searchQuery : this.searchQuery,
                 filterVisited != null ? filterVisited : this.filterVisited,
-                orderBy != null ? orderBy : this.orderBy
+                orderBy != null ? orderBy : this.orderBy,
+                this.totalCount,
+                this.visitedCount
         );
+    }
+
+    public UserListUiState withCounts(int totalCount, int visitedCount) {
+        return new UserListUiState(result, searchQuery, filterVisited, orderBy, totalCount, visitedCount);
     }
 }

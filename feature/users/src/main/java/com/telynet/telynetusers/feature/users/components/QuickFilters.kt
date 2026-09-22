@@ -29,18 +29,14 @@ import com.telynet.telynetusers.feature.users.UserListUiState
 import com.telynet.telynetusers.feature.users.VisitFilter
 
 @Composable
-internal fun QuickFilters(uiState: UserListUiState) {
-    val userList =
-        when (val result = uiState.result) {
-            is UserListUiState.Result.Success -> result.users
-            else -> emptyList()
-        }
-
-    var selectedSort by remember { mutableStateOf(SortOption.NAME_ASC) }
+internal fun QuickFilters(
+    uiState: UserListUiState,
+    onFilterSelected: (VisitFilter) -> Unit,
+    onSortSelected: (SortOption) -> Unit,
+) {
+    val selectedSort = SortOption.fromKey(uiState.orderBy)
     var isSortMenuExpanded by remember { mutableStateOf(false) }
-    val visitedCount = remember(userList) { userList.count { it.isVisited } }
-    val pendingCount = remember(userList) { userList.count { !it.isVisited } }
-    var selectedFilter by remember { mutableStateOf(VisitFilter.ALL) }
+    val selectedFilter = VisitFilter.fromValue(uiState.filterVisited)
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -52,8 +48,8 @@ internal fun QuickFilters(uiState: UserListUiState) {
         item {
             FilterChip(
                 selected = selectedFilter == VisitFilter.ALL,
-                onClick = { selectedFilter = VisitFilter.ALL },
-                label = { Text("All (${userList.size})") },
+                onClick = { onFilterSelected(VisitFilter.ALL) },
+                label = { Text("All (${uiState.totalCount})") },
                 shape = RoundedCornerShape(100.dp),
             )
         }
@@ -61,8 +57,8 @@ internal fun QuickFilters(uiState: UserListUiState) {
         item {
             FilterChip(
                 selected = selectedFilter == VisitFilter.VISITED,
-                onClick = { selectedFilter = VisitFilter.VISITED },
-                label = { Text("Visited ($visitedCount)") },
+                onClick = { onFilterSelected(VisitFilter.VISITED) },
+                label = { Text("Visited (${uiState.visitedCount})") },
                 shape = RoundedCornerShape(100.dp),
             )
         }
@@ -70,8 +66,8 @@ internal fun QuickFilters(uiState: UserListUiState) {
         item {
             FilterChip(
                 selected = selectedFilter == VisitFilter.NOT_VISITED,
-                onClick = { selectedFilter = VisitFilter.NOT_VISITED },
-                label = { Text("Pending ($pendingCount)") },
+                onClick = { onFilterSelected(VisitFilter.NOT_VISITED) },
+                label = { Text("Pending (${uiState.notVisitedCount})") },
                 shape = RoundedCornerShape(100.dp),
             )
         }
@@ -102,7 +98,7 @@ internal fun QuickFilters(uiState: UserListUiState) {
                         DropdownMenuItem(
                             text = { Text(option.label) },
                             onClick = {
-                                selectedSort = option
+                                onSortSelected(option)
                                 isSortMenuExpanded = false
                             },
                             leadingIcon =
