@@ -30,6 +30,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(project(":core:models"))
 }

@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,38 +21,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
 import com.telynet.telynetusers.core.models.entity.User
+import com.telynet.telynetusers.core.ui.ObserveAsEvents
 import com.telynet.telynetusers.core.ui.PagedUserList
 import com.telynet.telynetusers.feature.users.components.QuickFilters
 import com.telynet.telynetusers.feature.users.components.SearchBar
 import kotlinx.coroutines.flow.flowOf
-
-enum class VisitFilter(
-    val value: Int,
-) {
-    ALL(-1),
-    VISITED(1),
-    NOT_VISITED(0),
-    ;
-
-    companion object {
-        fun fromValue(value: Int): VisitFilter = entries.firstOrNull { it.value == value } ?: ALL
-    }
-}
-
-enum class SortOption(
-    val label: String,
-    val key: String,
-) {
-    NAME_ASC("Name (A-Z)", "name"),
-    NAME_DESC("Name (Z-A)", "name_desc"),
-    CODE_ASC("Code (Asc)", "code"),
-    CODE_DESC("Code (Desc)", "code_desc"),
-    ;
-
-    companion object {
-        fun fromKey(key: String): SortOption = entries.firstOrNull { it.key == key } ?: NAME_ASC
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,12 +36,20 @@ fun UserListRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val users = viewModel.users.collectAsLazyPagingItems()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    ObserveAsEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is UserListEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
+        }
+    }
 
     UserListScreen(
         modifier = modifier,
         uiState = uiState,
         users = users,
-        onIntent = viewModel::processIntent,
+        snackbarHostState = snackbarHostState,
+        onIntent = viewModel::onIntent,
         onUserClick = onUserClick,
     )
 }
@@ -79,9 +62,11 @@ private fun UserListScreen(
     users: LazyPagingItems<User>,
     onIntent: (UserListIntent) -> Unit,
     onUserClick: (User) -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 modifier =
@@ -107,10 +92,10 @@ private fun UserListScreen(
                 QuickFilters(
                     uiState = uiState,
                     onFilterSelected = { filter ->
-                        onIntent(UserListIntent.FilterVisitedChanged(filter.value))
+                        onIntent(UserListIntent.FilterSelected(filter))
                     },
                     onSortSelected = { option ->
-                        onIntent(UserListIntent.OrderByChanged(option.key))
+                        onIntent(UserListIntent.SortSelected(option))
                     },
                 )
                 PagedUserList(
@@ -125,7 +110,7 @@ private fun UserListScreen(
     )
 }
 
-@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(showBackground = true)
 @Composable
 private fun UserListScreenPreview() {
     val users =
@@ -133,8 +118,28 @@ private fun UserListScreenPreview() {
             flowOf(
                 PagingData.from(
                     listOf(
-                        User("mx1", "John Doe", "john.doe@example.com", "1234567890", false, "Mexico", "Http", "Mexico", false),
-                        User("mx2", "Jane Smith", "jane.smith@example.com", "9876543210", true, "Mexico", "Http", "Mexico", true),
+                        User(
+                            "mx1",
+                            "John Doe",
+                            "john.doe@example.com",
+                            "1234567890",
+                            false,
+                            "Mexico",
+                            "Http",
+                            "Mexico",
+                            false,
+                        ),
+                        User(
+                            "mx2",
+                            "Jane Smith",
+                            "jane.smith@example.com",
+                            "9876543210",
+                            true,
+                            "Mexico",
+                            "Http",
+                            "Mexico",
+                            true,
+                        ),
                     ),
                 ),
             )
@@ -142,7 +147,7 @@ private fun UserListScreenPreview() {
 
     TelynetUsersTheme {
         UserListScreen(
-            uiState = UserListUiState.initial().withCounts(2, 1),
+            uiState = UserListUiState(totalCount = 2, visitedCount = 1),
             users = users,
             onIntent = {},
             onUserClick = {},

@@ -9,11 +9,14 @@ import com.telynet.telynetusers.core.domain.usecase.GetFavoritesUseCase
 import com.telynet.telynetusers.core.domain.usecase.ToggleFavoriteUseCase
 import com.telynet.telynetusers.core.models.entity.User
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.rx3.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,29 +26,32 @@ class FavoritesViewModel
         getFavoritesUseCase: GetFavoritesUseCase,
         private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     ) : ViewModel() {
-        private val disposables = CompositeDisposable()
-
         val favorites: Flow<PagingData<User>> =
             getFavoritesUseCase
                 .execute()
                 .asFlow()
                 .cachedIn(viewModelScope)
 
-        fun onFavoriteClick(user: User) {
-            disposables.add(
-                toggleFavoriteUseCase
-                    .execute(user)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {},
-                        { error -> Log.e(TAG, "Could not update favorite for ${user.code}", error) },
-                    ),
-            )
+        private val _effects = Channel<FavoritesEffect>(Channel.BUFFERED)
+        val effects: Flow<FavoritesEffect> = _effects.receiveAsFlow()
+
+        fun onIntent(intent: FavoritesIntent) {
+            when (intent) {
+                is FavoritesIntent.ToggleFavorite -> toggleFavorite(intent.user)
+            }
         }
 
-        override fun onCleared() {
-            disposables.clear()
+        private fun toggleFavorite(user: User) {
+            viewModelScope.launch {
+                try {
+                    toggleFavoriteUseCase.execute(user).subscribeOn(Schedulers.io()).await()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Could not update favorite for ${user.code}", e)
+                    _effects.send(FavoritesEffect.ShowMessage("Couldn't update favorite for ${user.name}"))
+                }
+            }
         }
 
         private companion object {

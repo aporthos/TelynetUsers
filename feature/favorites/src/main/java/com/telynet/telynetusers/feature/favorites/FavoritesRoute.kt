@@ -11,6 +11,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,6 +27,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
 import com.telynet.telynetusers.core.models.entity.User
+import com.telynet.telynetusers.core.ui.ObserveAsEvents
 import com.telynet.telynetusers.core.ui.PagedUserList
 import kotlinx.coroutines.flow.flowOf
 
@@ -35,11 +38,19 @@ fun FavoritesRoute(
     viewModel: FavoritesViewModel = hiltViewModel(),
 ) {
     val favorites = viewModel.favorites.collectAsLazyPagingItems()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    ObserveAsEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is FavoritesEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
+        }
+    }
 
     FavoritesScreen(
         favorites = favorites,
+        snackbarHostState = snackbarHostState,
+        onIntent = viewModel::onIntent,
         onUserClick = onUserClick,
-        onFavoriteClick = viewModel::onFavoriteClick,
         modifier = modifier,
     )
 }
@@ -48,12 +59,14 @@ fun FavoritesRoute(
 @Composable
 private fun FavoritesScreen(
     favorites: LazyPagingItems<User>,
+    onIntent: (FavoritesIntent) -> Unit,
     onUserClick: (User) -> Unit,
-    onFavoriteClick: (User) -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Favorites") })
         },
@@ -61,7 +74,7 @@ private fun FavoritesScreen(
         PagedUserList(
             users = favorites,
             onUserClick = onUserClick,
-            onFavoriteClick = onFavoriteClick,
+            onFavoriteClick = { user -> onIntent(FavoritesIntent.ToggleFavorite(user)) },
             emptyContent = { EmptyFavorites() },
             modifier = Modifier.padding(innerPadding),
         )
@@ -103,8 +116,28 @@ private fun FavoritesScreenPreview() {
             flowOf(
                 PagingData.from(
                     listOf(
-                        User("mx1", "John Doe", "john.doe@example.com", "1234567890", false, "Mexico", "Http", "Mexico", true),
-                        User("mx2", "Jane Smith", "jane.smith@example.com", "9876543210", true, "Mexico", "Http", "Mexico", true),
+                        User(
+                            "mx1",
+                            "John Doe",
+                            "john.doe@example.com",
+                            "1234567890",
+                            false,
+                            "Mexico",
+                            "Http",
+                            "Mexico",
+                            true,
+                        ),
+                        User(
+                            "mx2",
+                            "Jane Smith",
+                            "jane.smith@example.com",
+                            "9876543210",
+                            true,
+                            "Mexico",
+                            "Http",
+                            "Mexico",
+                            true,
+                        ),
                     ),
                 ),
             )
@@ -113,8 +146,8 @@ private fun FavoritesScreenPreview() {
     TelynetUsersTheme {
         FavoritesScreen(
             favorites = favorites,
+            onIntent = {},
             onUserClick = {},
-            onFavoriteClick = {},
         )
     }
 }
@@ -127,8 +160,8 @@ private fun FavoritesEmptyPreview() {
     TelynetUsersTheme {
         FavoritesScreen(
             favorites = favorites,
+            onIntent = {},
             onUserClick = {},
-            onFavoriteClick = {},
         )
     }
 }

@@ -34,9 +34,9 @@ internal fun QuickFilters(
     onFilterSelected: (VisitFilter) -> Unit,
     onSortSelected: (SortOption) -> Unit,
 ) {
-    val selectedSort = SortOption.fromKey(uiState.orderBy)
+    val selectedSort = uiState.sort
     var isSortMenuExpanded by remember { mutableStateOf(false) }
-    val selectedFilter = VisitFilter.fromValue(uiState.filterVisited)
+    val selectedFilter = uiState.filter
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
