@@ -26,7 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
         return userDao.getAllUsers().map(entities -> {
             List<User> users = new ArrayList<>();
             for (UserEntity entity : entities) {
-                users.add(new User(entity.getId(), entity.getName(), entity.getEmail()));
+                users.add(new User(entity.getCode(), entity.getName(), entity.getEmail(), entity.getPhone(), entity.isVisited()));
             }
             return users;
         });
@@ -34,11 +34,17 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Completable saveUser(User user) {
-        return userDao.insertUser(new UserEntity(user.getId(), user.getName(), user.getEmail()));
+        return userDao.insertUser(new UserEntity(
+                user.getCode(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.isVisited()
+        ));
     }
 
     @Override
     public Completable deleteUser(User user) {
-        return userDao.deleteUser(new UserEntity(user.getId(), user.getName(), user.getEmail()));
+        return userDao.deleteUser(new UserEntity(user.getCode(), user.getName(), user.getEmail(), user.getPhone(), user.isVisited()));
     }
 }

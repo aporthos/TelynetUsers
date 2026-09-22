@@ -123,8 +123,8 @@ fun UserListPreview() {
         UserList(
             users =
                 listOf(
-                    User(1, "John Doe", "john.doe@example.com"),
-                    User(2, "Jane Smith", "jane.smith@example.com"),
+                    User("mx1", "John Doe", "john.doe@example.com", "1234567890", false),
+                    User("mx1", "Jane Smith", "jane.smith@example.com", "1234567890", false),
                 ),
         )
     }
