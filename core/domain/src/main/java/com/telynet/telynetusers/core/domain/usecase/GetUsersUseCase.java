@@ -1,5 +1,7 @@
 package com.telynet.telynetusers.core.domain.usecase;
 
+import androidx.paging.PagingData;
+
 import com.telynet.telynetusers.core.domain.repository.UserRepository;
 import com.telynet.telynetusers.core.models.entity.User;
 
@@ -21,7 +23,7 @@ public class GetUsersUseCase {
         return userRepository.getUsers();
     }
 
-    public Flowable<List<User>> execute(String searchQuery, int filterVisited, String orderBy) {
+    public Flowable<PagingData<User>> execute(String searchQuery, int filterVisited, String orderBy) {
         return userRepository.getUsersFiltered(searchQuery, filterVisited, orderBy);
     }
 }

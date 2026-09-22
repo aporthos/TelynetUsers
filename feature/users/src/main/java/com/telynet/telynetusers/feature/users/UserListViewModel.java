@@ -3,23 +3,28 @@ package com.telynet.telynetusers.feature.users;
 import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelKt;
+import androidx.paging.CachedPagingDataKt;
+import androidx.paging.PagingData;
 
 import com.telynet.telynetusers.core.domain.usecase.GetUsersUseCase;
 import com.telynet.telynetusers.core.domain.usecase.ToggleFavoriteUseCase;
+import com.telynet.telynetusers.core.models.entity.User;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-
-import com.telynet.telynetusers.core.models.entity.User;
-
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.flow.MutableStateFlow;
 import kotlinx.coroutines.flow.StateFlow;
 import kotlinx.coroutines.flow.StateFlowKt;
-
-import javax.inject.Inject;
+import kotlinx.coroutines.reactive.ReactiveFlowKt;
 
 @HiltViewModel
 public class UserListViewModel extends ViewModel {
@@ -31,8 +36,10 @@ public class UserListViewModel extends ViewModel {
     private final MutableStateFlow<UserListUiState> _uiState;
     private final StateFlow<UserListUiState> uiState;
 
+    private final BehaviorSubject<UserListUiState> queries;
+    private final Flow<PagingData<User>> users;
+
     private final CompositeDisposable disposables = new CompositeDisposable();
-    private Disposable activeDisposable;
 
     @Inject
     public UserListViewModel(GetUsersUseCase getUsersUseCase, ToggleFavoriteUseCase toggleFavoriteUseCase) {
@@ -40,64 +47,55 @@ public class UserListViewModel extends ViewModel {
         this.toggleFavoriteUseCase = toggleFavoriteUseCase;
         this._uiState = StateFlowKt.MutableStateFlow(UserListUiState.initial());
         this.uiState = _uiState;
+        this.queries = BehaviorSubject.createDefault(_uiState.getValue());
+
+        Flowable<PagingData<User>> pagedUsers = queries
+                .toFlowable(BackpressureStrategy.LATEST)
+                .distinctUntilChanged(UserListUiState::hasSameQueryAs)
+                .switchMap(query -> getUsersUseCase.execute(
+                        query.getSearchQuery(), query.getFilterVisited(), query.getOrderBy()));
+
+        this.users = CachedPagingDataKt.cachedIn(
+                ReactiveFlowKt.asFlow(pagedUsers),
+                ViewModelKt.getViewModelScope(this));
+
         loadCounts();
-        loadUsers();
     }
 
     public StateFlow<UserListUiState> getUiState() {
         return uiState;
     }
 
+    public Flow<PagingData<User>> getUsers() {
+        return users;
+    }
+
     public void processIntent(UserListIntent intent) {
         UserListUiState currentState = _uiState.getValue();
         if (intent instanceof UserListIntent.SearchQueryChanged) {
-            _uiState.setValue(currentState.copyWith(null, ((UserListIntent.SearchQueryChanged) intent).getQuery(), null, null));
-            loadUsers();
+            updateQuery(currentState.copyWith(((UserListIntent.SearchQueryChanged) intent).getQuery(), null, null));
         } else if (intent instanceof UserListIntent.FilterVisitedChanged) {
-            _uiState.setValue(currentState.copyWith(null, null, ((UserListIntent.FilterVisitedChanged) intent).getFilter(), null));
-            loadUsers();
+            updateQuery(currentState.copyWith(null, ((UserListIntent.FilterVisitedChanged) intent).getFilter(), null));
         } else if (intent instanceof UserListIntent.OrderByChanged) {
-            _uiState.setValue(currentState.copyWith(null, null, null, ((UserListIntent.OrderByChanged) intent).getOrderBy()));
-            loadUsers();
+            updateQuery(currentState.copyWith(null, null, ((UserListIntent.OrderByChanged) intent).getOrderBy()));
         } else if (intent instanceof UserListIntent.ToggleFavorite) {
             toggleFavorite(((UserListIntent.ToggleFavorite) intent).getUser());
         }
     }
 
-    private void loadUsers() {
-        if (activeDisposable != null && !activeDisposable.isDisposed()) {
-            disposables.remove(activeDisposable);
-        }
-        UserListUiState currentState = _uiState.getValue();
-        if (!(currentState.getResult() instanceof UserListUiState.Result.Success)) {
-            _uiState.setValue(currentState.copyWith(UserListUiState.Result.Loading.INSTANCE, null, null, null));
-        }
-
-        activeDisposable = getUsersUseCase.execute(currentState.getSearchQuery(), currentState.getFilterVisited(), currentState.getOrderBy())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        userList -> {
-                            UserListUiState latestState = _uiState.getValue();
-                            _uiState.setValue(latestState.copyWith(new UserListUiState.Result.Success(userList), null, null, null));
-                        },
-                        error -> {
-                            UserListUiState latestState = _uiState.getValue();
-                            String message = error.getLocalizedMessage() != null ? error.getLocalizedMessage() : "Unknown error occurred";
-                            _uiState.setValue(latestState.copyWith(new UserListUiState.Result.Error(message), null, null, null));
-                        }
-                );
-        disposables.add(activeDisposable);
+    private void updateQuery(UserListUiState newState) {
+        _uiState.setValue(newState);
+        queries.onNext(newState);
     }
 
-    // The users Flowable re-emits after the update, so the list refreshes without reloading
+    // Room invalidates the PagingSource after the update, so the visible page refreshes on its own
     private void toggleFavorite(User user) {
         disposables.add(toggleFavoriteUseCase.execute(user)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        () -> { },
-                        // The list keeps showing the previous value, so a failed toggle is only logged
+                        () -> {
+                        },
                         error -> Log.e(TAG, "Could not update favorite for " + user.getCode(), error)
                 ));
     }

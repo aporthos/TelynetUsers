@@ -21,6 +21,11 @@ android {
     }
 }
 
+ksp {
+    // The DAOs are Java; Kotlin codegen treats their generic types as nullable, which PagingSource rejects
+    arg("room.generateKotlin", "false")
+}
+
 dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -30,6 +35,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.rxjava3)
+    implementation(libs.androidx.room.paging)
 
     "ksp"(libs.androidx.room.compiler)
     "ksp"(libs.hilt.compiler)

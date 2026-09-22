@@ -31,6 +31,9 @@ dependencies {
 
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
+    implementation(libs.androidx.paging.common)
+    implementation(libs.androidx.paging.rxjava3)
+    implementation(libs.androidx.room.paging)
 
     implementation(project(":core:domain"))
     implementation(project(":core:models"))

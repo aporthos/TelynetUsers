@@ -1,5 +1,6 @@
 package com.telynet.telynetusers.core.database.dao;
 
+import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -28,10 +29,10 @@ public interface UserDao {
            "CASE WHEN :orderBy = 'code' THEN code END ASC, " +
            "CASE WHEN :orderBy = 'code_desc' THEN code END DESC, " +
            "code ASC")
-    Flowable<List<UserEntity>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
+    PagingSource<Integer, UserEntity> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
 
     @Query("SELECT * FROM users WHERE isFavorite = 1 ORDER BY name ASC")
-    Flowable<List<UserEntity>> getFavoriteUsers();
+    PagingSource<Integer, UserEntity> getFavoriteUsers();
 
     @Query("SELECT * FROM users WHERE code = :code LIMIT 1")
     Single<List<UserEntity>> getUserByCode(String code);

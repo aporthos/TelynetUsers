@@ -3,6 +3,8 @@ package com.telynet.telynetusers.feature.favorites
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.telynet.telynetusers.core.domain.usecase.GetFavoritesUseCase
 import com.telynet.telynetusers.core.domain.usecase.ToggleFavoriteUseCase
 import com.telynet.telynetusers.core.models.entity.User
@@ -10,13 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import javax.inject.Inject
 
@@ -29,20 +25,12 @@ class FavoritesViewModel
     ) : ViewModel() {
         private val disposables = CompositeDisposable()
 
-        val uiState: StateFlow<FavoritesUiState> =
+        val favorites: Flow<PagingData<User>> =
             getFavoritesUseCase
                 .execute()
                 .asFlow()
-                .flowOn(Dispatchers.IO)
-                .map<List<User>, FavoritesUiState> { users -> FavoritesUiState.Success(users) }
-                .catch { error -> emit(FavoritesUiState.Error(error.localizedMessage ?: "Unknown error occurred")) }
-                .stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5_000),
-                    initialValue = FavoritesUiState.Loading,
-                )
+                .cachedIn(viewModelScope)
 
-        // Removing a favorite updates the database; the favorites Flowable re-emits without the user
         fun onFavoriteClick(user: User) {
             disposables.add(
                 toggleFavoriteUseCase

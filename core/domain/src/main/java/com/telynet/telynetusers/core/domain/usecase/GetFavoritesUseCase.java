@@ -1,9 +1,9 @@
 package com.telynet.telynetusers.core.domain.usecase;
 
+import androidx.paging.PagingData;
+
 import com.telynet.telynetusers.core.domain.repository.UserRepository;
 import com.telynet.telynetusers.core.models.entity.User;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -18,9 +18,9 @@ public class GetFavoritesUseCase {
     }
 
     /**
-     * Emits the favorite users sorted by name, and again whenever a favorite is added or removed.
+     * Emits the favorite users sorted by name, loaded in pages of 20.
      */
-    public Flowable<List<User>> execute() {
+    public Flowable<PagingData<User>> execute() {
         return userRepository.getFavoriteUsers();
     }
 }

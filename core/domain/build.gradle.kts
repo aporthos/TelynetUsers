@@ -28,6 +28,7 @@ dependencies {
 
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
+    implementation(libs.androidx.paging.common)
 
     implementation(libs.hilt.android)
     "ksp"(libs.hilt.compiler)

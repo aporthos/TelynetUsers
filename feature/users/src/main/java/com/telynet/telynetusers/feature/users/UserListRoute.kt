@@ -1,34 +1,28 @@
 package com.telynet.telynetusers.feature.users
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
 import com.telynet.telynetusers.core.models.entity.User
-import com.telynet.telynetusers.core.ui.UserListItemCard
-import com.telynet.telynetusers.core.ui.launchDialer
-import com.telynet.telynetusers.core.ui.launchGoogleMaps
+import com.telynet.telynetusers.core.ui.PagedUserList
 import com.telynet.telynetusers.feature.users.components.QuickFilters
 import com.telynet.telynetusers.feature.users.components.SearchBar
+import kotlinx.coroutines.flow.flowOf
 
 enum class VisitFilter(
     val value: Int,
@@ -66,10 +60,12 @@ fun UserListRoute(
     onUserClick: (User) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val users = viewModel.users.collectAsLazyPagingItems()
 
     UserListScreen(
         modifier = modifier,
         uiState = uiState,
+        users = users,
         onIntent = viewModel::processIntent,
         onUserClick = onUserClick,
     )
@@ -80,6 +76,7 @@ fun UserListRoute(
 private fun UserListScreen(
     modifier: Modifier = Modifier,
     uiState: UserListUiState,
+    users: LazyPagingItems<User>,
     onIntent: (UserListIntent) -> Unit,
     onUserClick: (User) -> Unit,
 ) {
@@ -116,102 +113,39 @@ private fun UserListScreen(
                         onIntent(UserListIntent.OrderByChanged(option.key))
                     },
                 )
-                when (val result = uiState.result) {
-                    is UserListUiState.Result.Loading -> {
-                        CircularProgressIndicator()
-                    }
-
-                    is UserListUiState.Result.Error -> {
-                        Text(
-                            text = result.message,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp),
-                        )
-                    }
-
-                    is UserListUiState.Result.Success -> {
-                        if (result.users.isEmpty()) {
-                            Text("No users found.")
-                        } else {
-                            UserList(
-                                users = result.users,
-                                onUserClick = onUserClick,
-                                onFavoriteClick = { user ->
-                                    onIntent(UserListIntent.ToggleFavorite(user))
-                                },
-                            )
-                        }
-                    }
-                }
+                PagedUserList(
+                    users = users,
+                    onUserClick = onUserClick,
+                    onFavoriteClick = { user ->
+                        onIntent(UserListIntent.ToggleFavorite(user))
+                    },
+                )
             }
         },
     )
 }
 
-@Composable
-fun UserList(
-    users: List<User>,
-    onUserClick: (User) -> Unit,
-    onFavoriteClick: (User) -> Unit,
-) {
-    val context = LocalContext.current
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(users, key = { it.code }) { user ->
-            UserListItemCard(
-                user = user,
-                onClick = {
-                    onUserClick(user)
-                },
-                onCallClick = {
-                    launchDialer(context, user.phone)
-                },
-                onNavigateClick = {
-                    launchGoogleMaps(context, user.address)
-                },
-                onFavoriteClick = {
-                    onFavoriteClick(user)
-                },
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
-fun UserListPreview() {
-    TelynetUsersTheme {
-        UserList(
-            onUserClick = {},
-            onFavoriteClick = {},
-            users =
-                listOf(
-                    User(
-                        "mx1",
-                        "John Doe",
-                        "john.doe@example.com",
-                        "1234567890",
-                        false,
-                        "Mexico",
-                        "Http",
-                        "Mexico",
-                        false,
-                    ),
-                    User(
-                        "mx2",
-                        "Jane Smith",
-                        "jane.smith@example.com",
-                        "9876543210",
-                        true,
-                        "Mexico",
-                        "Http",
-                        "Mexico",
-                        true,
+private fun UserListScreenPreview() {
+    val users =
+        remember {
+            flowOf(
+                PagingData.from(
+                    listOf(
+                        User("mx1", "John Doe", "john.doe@example.com", "1234567890", false, "Mexico", "Http", "Mexico", false),
+                        User("mx2", "Jane Smith", "jane.smith@example.com", "9876543210", true, "Mexico", "Http", "Mexico", true),
                     ),
                 ),
+            )
+        }.collectAsLazyPagingItems()
+
+    TelynetUsersTheme {
+        UserListScreen(
+            uiState = UserListUiState.initial().withCounts(2, 1),
+            users = users,
+            onIntent = {},
+            onUserClick = {},
         )
     }
 }

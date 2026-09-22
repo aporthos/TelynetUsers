@@ -1,38 +1,32 @@
 package com.telynet.telynetusers.feature.favorites
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
 import com.telynet.telynetusers.core.models.entity.User
-import com.telynet.telynetusers.core.ui.UserListItemCard
-import com.telynet.telynetusers.core.ui.launchDialer
-import com.telynet.telynetusers.core.ui.launchGoogleMaps
+import com.telynet.telynetusers.core.ui.PagedUserList
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun FavoritesRoute(
@@ -40,10 +34,10 @@ fun FavoritesRoute(
     modifier: Modifier = Modifier,
     viewModel: FavoritesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val favorites = viewModel.favorites.collectAsLazyPagingItems()
 
     FavoritesScreen(
-        uiState = uiState,
+        favorites = favorites,
         onUserClick = onUserClick,
         onFavoriteClick = viewModel::onFavoriteClick,
         modifier = modifier,
@@ -53,7 +47,7 @@ fun FavoritesRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FavoritesScreen(
-    uiState: FavoritesUiState,
+    favorites: LazyPagingItems<User>,
     onUserClick: (User) -> Unit,
     onFavoriteClick: (User) -> Unit,
     modifier: Modifier = Modifier,
@@ -64,64 +58,13 @@ private fun FavoritesScreen(
             CenterAlignedTopAppBar(title = { Text("Favorites") })
         },
     ) { innerPadding ->
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-        ) {
-            when (uiState) {
-                is FavoritesUiState.Loading -> {
-                    CircularProgressIndicator()
-                }
-
-                is FavoritesUiState.Error -> {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp),
-                    )
-                }
-
-                is FavoritesUiState.Success -> {
-                    if (uiState.users.isEmpty()) {
-                        EmptyFavorites()
-                    } else {
-                        FavoritesList(
-                            users = uiState.users,
-                            onUserClick = onUserClick,
-                            onFavoriteClick = onFavoriteClick,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FavoritesList(
-    users: List<User>,
-    onUserClick: (User) -> Unit,
-    onFavoriteClick: (User) -> Unit,
-) {
-    val context = LocalContext.current
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(users, key = { it.code }) { user ->
-            UserListItemCard(
-                user = user,
-                onClick = { onUserClick(user) },
-                onCallClick = { launchDialer(context, user.phone) },
-                onNavigateClick = { launchGoogleMaps(context, user.address) },
-                onFavoriteClick = { onFavoriteClick(user) },
-                modifier = Modifier.animateItem(),
-            )
-        }
+        PagedUserList(
+            users = favorites,
+            onUserClick = onUserClick,
+            onFavoriteClick = onFavoriteClick,
+            emptyContent = { EmptyFavorites() },
+            modifier = Modifier.padding(innerPadding),
+        )
     }
 }
 
@@ -155,15 +98,21 @@ private fun EmptyFavorites() {
 @Preview(showBackground = true)
 @Composable
 private fun FavoritesScreenPreview() {
-    TelynetUsersTheme {
-        FavoritesScreen(
-            uiState =
-                FavoritesUiState.Success(
+    val favorites =
+        remember {
+            flowOf(
+                PagingData.from(
                     listOf(
                         User("mx1", "John Doe", "john.doe@example.com", "1234567890", false, "Mexico", "Http", "Mexico", true),
                         User("mx2", "Jane Smith", "jane.smith@example.com", "9876543210", true, "Mexico", "Http", "Mexico", true),
                     ),
                 ),
+            )
+        }.collectAsLazyPagingItems()
+
+    TelynetUsersTheme {
+        FavoritesScreen(
+            favorites = favorites,
             onUserClick = {},
             onFavoriteClick = {},
         )
@@ -173,9 +122,11 @@ private fun FavoritesScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun FavoritesEmptyPreview() {
+    val favorites = remember { flowOf(PagingData.empty<User>()) }.collectAsLazyPagingItems()
+
     TelynetUsersTheme {
         FavoritesScreen(
-            uiState = FavoritesUiState.Success(emptyList()),
+            favorites = favorites,
             onUserClick = {},
             onFavoriteClick = {},
         )
