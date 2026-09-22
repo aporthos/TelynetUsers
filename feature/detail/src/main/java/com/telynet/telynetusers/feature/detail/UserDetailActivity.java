@@ -38,8 +38,6 @@ public class UserDetailActivity extends AppCompatActivity {
     private View statusDot;
     private TextView statusText;
 
-    private final UserDetailViewModel viewModel = new ViewModelProvider(this).get(UserDetailViewModel.class);
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +64,7 @@ public class UserDetailActivity extends AppCompatActivity {
         statusDot = findViewById(R.id.viewStatusDot);
         statusText = findViewById(R.id.tvStatusText);
 
+        UserDetailViewModel viewModel = new ViewModelProvider(this).get(UserDetailViewModel.class);
         viewModel.getUiState().observe(this, this::render);
     }
 
