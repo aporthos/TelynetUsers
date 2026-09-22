@@ -26,7 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
         return userDao.getAllUsers().map(entities -> {
             List<User> users = new ArrayList<>();
             for (UserEntity entity : entities) {
-                users.add(new User(entity.getCode(), entity.getName(), entity.getEmail(), entity.getPhone(), entity.isVisited()));
+                users.add(mapEntityToUser(entity));
             }
             return users;
         });
@@ -37,7 +37,7 @@ public class UserRepositoryImpl implements UserRepository {
         return userDao.getUsersFiltered(searchQuery, filterVisited, orderBy).map(entities -> {
             List<User> users = new ArrayList<>();
             for (UserEntity entity : entities) {
-                users.add(new User(entity.getCode(), entity.getName(), entity.getEmail(), entity.getPhone(), entity.isVisited()));
+                users.add(mapEntityToUser(entity));
             }
             return users;
         });
@@ -45,17 +45,37 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Completable saveUser(User user) {
-        return userDao.insertUser(new UserEntity(
-                user.getCode(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.isVisited()
-        ));
+        return userDao.insertUser(mapUserToEntity(user));
     }
 
     @Override
     public Completable deleteUser(User user) {
-        return userDao.deleteUser(new UserEntity(user.getCode(), user.getName(), user.getEmail(), user.getPhone(), user.isVisited()));
+        return userDao.deleteUser(mapUserToEntity(user));
+    }
+
+    private User mapEntityToUser(UserEntity entity) {
+        return new User(
+                entity.getCode(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPhone(),
+                entity.isVisited(),
+                entity.getAddress(),
+                entity.getImageUrl(),
+                entity.getCompany()
+        );
+    }
+
+    private UserEntity mapUserToEntity(User user) {
+        return new UserEntity(
+                user.getCode(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.isVisited(),
+                user.getAddress(),
+                user.getImageUrl(),
+                user.getCompany()
+        );
     }
 }

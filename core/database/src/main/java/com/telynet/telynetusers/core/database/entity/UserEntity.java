@@ -14,15 +14,22 @@ public class UserEntity {
     private String phone;
     private boolean isVisited;
 
+    private String address;
+    private String imageUrl;
+    private String company;
+
     public UserEntity() {
     }
 
-    public UserEntity(@NonNull String code, String name, String email, String phone, boolean isVisited) {
+    public UserEntity(@NonNull String code, String name, String email, String phone, boolean isVisited, String address, String imageUrl, String company) {
         this.name = name;
         this.email = email;
         this.code = code;
         this.phone = phone;
         this.isVisited = isVisited;
+        this.address = address;
+        this.imageUrl = imageUrl;
+        this.company = company;
     }
 
     public String getName() {
@@ -64,5 +71,29 @@ public class UserEntity {
 
     public void setVisited(boolean isVisited) {
         this.isVisited = isVisited;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
     }
 }

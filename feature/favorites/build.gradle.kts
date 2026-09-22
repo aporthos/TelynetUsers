@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.telynet.telynetusers.feature.users"
+    namespace = "com.telynet.telynetusers.feature.favorites"
     compileSdk {
         version = release(37)
     }
@@ -20,7 +20,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
     buildFeatures {
         compose = true
     }
