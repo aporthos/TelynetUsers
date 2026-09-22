@@ -45,10 +45,26 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Flowable<List<User>> getFavoriteUsers() {
+        return userDao.getFavoriteUsers().map(entities -> {
+            List<User> users = new ArrayList<>();
+            for (UserEntity entity : entities) {
+                users.add(mapEntityToUser(entity));
+            }
+            return users;
+        });
+    }
+
+    @Override
     public Maybe<User> getUserByCode(String code) {
         return userDao.getUserByCode(code).flatMapMaybe(entities -> entities.isEmpty()
                 ? Maybe.empty()
                 : Maybe.just(mapEntityToUser(entities.get(0))));
+    }
+
+    @Override
+    public Completable updateFavorite(String code, boolean isFavorite) {
+        return userDao.updateFavorite(code, isFavorite);
     }
 
     @Override
@@ -70,7 +86,8 @@ public class UserRepositoryImpl implements UserRepository {
                 entity.isVisited(),
                 entity.getAddress(),
                 entity.getImageUrl(),
-                entity.getCompany()
+                entity.getCompany(),
+                entity.isFavorite()
         );
     }
 
@@ -83,7 +100,8 @@ public class UserRepositoryImpl implements UserRepository {
                 user.isVisited(),
                 user.getAddress(),
                 user.getImageUrl(),
-                user.getCompany()
+                user.getCompany(),
+                user.isFavorite()
         );
     }
 }

@@ -9,9 +9,10 @@ public class User {
     private final String address;
     private final String imageUrl;
     private final String company;
+    private final boolean isFavorite;
 
 
-    public User(String code, String name, String email, String phone, boolean isVisited, String address, String imageUrl, String company) {
+    public User(String code, String name, String email, String phone, boolean isVisited, String address, String imageUrl, String company, boolean isFavorite) {
         this.name = name;
         this.email = email;
         this.code = code;
@@ -20,6 +21,7 @@ public class User {
         this.address = address;
         this.imageUrl = imageUrl;
         this.company = company;
+        this.isFavorite = isFavorite;
     }
 
     public String getName() {
@@ -52,5 +54,9 @@ public class User {
 
     public String getCompany() {
         return company;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
     }
 }

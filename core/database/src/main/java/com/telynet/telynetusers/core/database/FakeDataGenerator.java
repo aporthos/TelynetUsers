@@ -36,7 +36,7 @@ public class FakeDataGenerator {
 
             String company = companies[random.nextInt(companies.length)];
 
-            fakeUsers.add(new UserEntity(code, fullName, email, phone, isVisited, address, imageUrl, company));
+            fakeUsers.add(new UserEntity(code, fullName, email, phone, isVisited, address, imageUrl, company, false));
         }
 
         return fakeUsers;

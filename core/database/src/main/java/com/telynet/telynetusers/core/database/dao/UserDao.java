@@ -30,8 +30,14 @@ public interface UserDao {
            "code ASC")
     Flowable<List<UserEntity>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
 
+    @Query("SELECT * FROM users WHERE isFavorite = 1 ORDER BY name ASC")
+    Flowable<List<UserEntity>> getFavoriteUsers();
+
     @Query("SELECT * FROM users WHERE code = :code LIMIT 1")
     Single<List<UserEntity>> getUserByCode(String code);
+
+    @Query("UPDATE users SET isFavorite = :isFavorite WHERE code = :code")
+    Completable updateFavorite(String code, boolean isFavorite);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Completable insertUser(UserEntity user);

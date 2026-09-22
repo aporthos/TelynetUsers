@@ -1,8 +1,5 @@
 package com.telynet.telynetusers.feature.users
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,12 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
 import com.telynet.telynetusers.core.models.entity.User
 import com.telynet.telynetusers.core.ui.UserListItemCard
+import com.telynet.telynetusers.core.ui.launchDialer
+import com.telynet.telynetusers.core.ui.launchGoogleMaps
 import com.telynet.telynetusers.feature.users.components.QuickFilters
 import com.telynet.telynetusers.feature.users.components.SearchBar
 
@@ -135,7 +133,13 @@ private fun UserListScreen(
                         if (result.users.isEmpty()) {
                             Text("No users found.")
                         } else {
-                            UserList(result.users, onUserClick)
+                            UserList(
+                                users = result.users,
+                                onUserClick = onUserClick,
+                                onFavoriteClick = { user ->
+                                    onIntent(UserListIntent.ToggleFavorite(user))
+                                },
+                            )
                         }
                     }
                 }
@@ -148,6 +152,7 @@ private fun UserListScreen(
 fun UserList(
     users: List<User>,
     onUserClick: (User) -> Unit,
+    onFavoriteClick: (User) -> Unit,
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -167,40 +172,11 @@ fun UserList(
                 onNavigateClick = {
                     launchGoogleMaps(context, user.address)
                 },
+                onFavoriteClick = {
+                    onFavoriteClick(user)
+                },
             )
         }
-    }
-}
-
-fun launchDialer(
-    context: Context,
-    phoneNumber: String,
-) {
-    val intent =
-        Intent(Intent.ACTION_DIAL).apply {
-            data = "tel:${phoneNumber.replace(Regex("[^0-9+]"), "")}".toUri()
-        }
-    context.startActivity(intent)
-}
-
-fun launchGoogleMaps(
-    context: Context,
-    address: String,
-) {
-    val uri = "geo:0,0?q=${Uri.encode(address)}".toUri()
-    val mapIntent =
-        Intent(Intent.ACTION_VIEW, uri).apply {
-            setPackage("com.google.android.apps.maps")
-        }
-    if (mapIntent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(mapIntent)
-    } else {
-        context.startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                "https://maps.google.com/?q=${Uri.encode(address)}".toUri(),
-            ),
-        )
     }
 }
 
@@ -210,6 +186,7 @@ fun UserListPreview() {
     TelynetUsersTheme {
         UserList(
             onUserClick = {},
+            onFavoriteClick = {},
             users =
                 listOf(
                     User(
@@ -221,6 +198,7 @@ fun UserListPreview() {
                         "Mexico",
                         "Http",
                         "Mexico",
+                        false,
                     ),
                     User(
                         "mx2",
@@ -231,6 +209,7 @@ fun UserListPreview() {
                         "Mexico",
                         "Http",
                         "Mexico",
+                        true,
                     ),
                 ),
         )

@@ -13,7 +13,11 @@ public interface UserRepository {
 
     Flowable<List<User>> getUsersFiltered(String searchQuery, int filterVisited, String orderBy);
 
+    Flowable<List<User>> getFavoriteUsers();
+
     Maybe<User> getUserByCode(String code);
+
+    Completable updateFavorite(String code, boolean isFavorite);
 
     Completable saveUser(User user);
 

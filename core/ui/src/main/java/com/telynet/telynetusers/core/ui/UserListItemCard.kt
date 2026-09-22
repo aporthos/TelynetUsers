@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -18,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +39,7 @@ fun UserListItemCard(
     onClick: () -> Unit,
     onCallClick: () -> Unit,
     onNavigateClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
@@ -111,8 +115,31 @@ fun UserListItemCard(
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
             ) {
+                IconToggleButton(
+                    checked = user.isFavorite,
+                    onCheckedChange = { onFavoriteClick() },
+                    colors =
+                        IconButtonDefaults.iconToggleButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            checkedContentColor = MaterialTheme.colorScheme.error,
+                        ),
+                ) {
+                    Icon(
+                        imageVector = if (user.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription =
+                            if (user.isFavorite) {
+                                "Remove ${user.name} from favorites"
+                            } else {
+                                "Add ${user.name} to favorites"
+                            },
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
                 FilledTonalIconButton(
                     onClick = onCallClick,
                     shape = RoundedCornerShape(12.dp),

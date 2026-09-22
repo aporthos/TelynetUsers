@@ -17,11 +17,12 @@ public class UserEntity {
     private String address;
     private String imageUrl;
     private String company;
+    private boolean isFavorite;
 
     public UserEntity() {
     }
 
-    public UserEntity(@NonNull String code, String name, String email, String phone, boolean isVisited, String address, String imageUrl, String company) {
+    public UserEntity(@NonNull String code, String name, String email, String phone, boolean isVisited, String address, String imageUrl, String company, boolean isFavorite) {
         this.name = name;
         this.email = email;
         this.code = code;
@@ -30,6 +31,7 @@ public class UserEntity {
         this.address = address;
         this.imageUrl = imageUrl;
         this.company = company;
+        this.isFavorite = isFavorite;
     }
 
     public String getName() {
@@ -95,5 +97,13 @@ public class UserEntity {
 
     public void setCompany(String company) {
         this.company = company;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean isFavorite) {
+        this.isFavorite = isFavorite;
     }
 }

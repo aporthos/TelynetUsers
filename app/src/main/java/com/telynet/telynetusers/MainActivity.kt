@@ -24,6 +24,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.telynet.telynetusers.core.designsystem.TelynetUsersTheme
+import com.telynet.telynetusers.core.models.entity.User
 import com.telynet.telynetusers.feature.detail.UserDetailActivity
 import com.telynet.telynetusers.feature.detail.UserDetailActivity.EXTRA_USER_CODE
 import com.telynet.telynetusers.feature.favorites.FavoritesRoute
@@ -52,6 +53,12 @@ private fun TelynetUsersApp() {
     val backStack = rememberNavBackStack(UsersKey)
     val currentKey = backStack.lastOrNull()
     val context = LocalContext.current
+    val openUserDetail: (User) -> Unit = { user ->
+        Intent(context, UserDetailActivity::class.java).apply {
+            putExtra(EXTRA_USER_CODE, user.code)
+            context.startActivity(this)
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -82,17 +89,8 @@ private fun TelynetUsersApp() {
                 ),
             entryProvider =
                 entryProvider {
-                    entry<UsersKey> {
-                        UserListRoute(
-                            onUserClick = { user ->
-                                Intent(context, UserDetailActivity::class.java).apply {
-                                    putExtra(EXTRA_USER_CODE, user.code)
-                                    context.startActivity(this)
-                                }
-                            },
-                        )
-                    }
-                    entry<FavoritesKey> { FavoritesRoute() }
+                    entry<UsersKey> { UserListRoute(onUserClick = openUserDetail) }
+                    entry<FavoritesKey> { FavoritesRoute(onUserClick = openUserDetail) }
                 },
         )
     }

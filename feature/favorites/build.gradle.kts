@@ -37,6 +37,8 @@ dependencies {
 
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
+    implementation(libs.kotlinx.coroutines.reactive)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(libs.androidx.compose.ui.tooling.preview)
 

@@ -1,8 +1,11 @@
 package com.telynet.telynetusers.feature.users;
 
+import android.util.Log;
+
 import androidx.lifecycle.ViewModel;
 
 import com.telynet.telynetusers.core.domain.usecase.GetUsersUseCase;
+import com.telynet.telynetusers.core.domain.usecase.ToggleFavoriteUseCase;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -21,7 +24,10 @@ import javax.inject.Inject;
 @HiltViewModel
 public class UserListViewModel extends ViewModel {
 
+    private static final String TAG = "UserListViewModel";
+
     private final GetUsersUseCase getUsersUseCase;
+    private final ToggleFavoriteUseCase toggleFavoriteUseCase;
     private final MutableStateFlow<UserListUiState> _uiState;
     private final StateFlow<UserListUiState> uiState;
 
@@ -29,8 +35,9 @@ public class UserListViewModel extends ViewModel {
     private Disposable activeDisposable;
 
     @Inject
-    public UserListViewModel(GetUsersUseCase getUsersUseCase) {
+    public UserListViewModel(GetUsersUseCase getUsersUseCase, ToggleFavoriteUseCase toggleFavoriteUseCase) {
         this.getUsersUseCase = getUsersUseCase;
+        this.toggleFavoriteUseCase = toggleFavoriteUseCase;
         this._uiState = StateFlowKt.MutableStateFlow(UserListUiState.initial());
         this.uiState = _uiState;
         loadCounts();
@@ -52,6 +59,8 @@ public class UserListViewModel extends ViewModel {
         } else if (intent instanceof UserListIntent.OrderByChanged) {
             _uiState.setValue(currentState.copyWith(null, null, null, ((UserListIntent.OrderByChanged) intent).getOrderBy()));
             loadUsers();
+        } else if (intent instanceof UserListIntent.ToggleFavorite) {
+            toggleFavorite(((UserListIntent.ToggleFavorite) intent).getUser());
         }
     }
 
@@ -79,6 +88,18 @@ public class UserListViewModel extends ViewModel {
                         }
                 );
         disposables.add(activeDisposable);
+    }
+
+    // The users Flowable re-emits after the update, so the list refreshes without reloading
+    private void toggleFavorite(User user) {
+        disposables.add(toggleFavoriteUseCase.execute(user)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> { },
+                        // The list keeps showing the previous value, so a failed toggle is only logged
+                        error -> Log.e(TAG, "Could not update favorite for " + user.getCode(), error)
+                ));
     }
 
     private void loadCounts() {

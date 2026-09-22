@@ -1,5 +1,7 @@
 package com.telynet.telynetusers.feature.users;
 
+import com.telynet.telynetusers.core.models.entity.User;
+
 public interface UserListIntent {
 
     class SearchQueryChanged implements UserListIntent {
@@ -35,6 +37,18 @@ public interface UserListIntent {
 
         public String getOrderBy() {
             return orderBy;
+        }
+    }
+
+    class ToggleFavorite implements UserListIntent {
+        private final User user;
+
+        public ToggleFavorite(User user) {
+            this.user = user;
+        }
+
+        public User getUser() {
+            return user;
         }
     }
 }
