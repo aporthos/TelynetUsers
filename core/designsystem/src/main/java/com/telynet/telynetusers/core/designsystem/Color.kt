@@ -1,4 +1,4 @@
-package com.telynet.telynetusers.ui.theme
+package com.telynet.telynetusers.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 

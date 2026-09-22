@@ -1,4 +1,4 @@
-package com.telynet.telynetusers.core.domain.entity;
+package com.telynet.telynetusers.core.models.entity;
 
 public class User {
     private final int id;

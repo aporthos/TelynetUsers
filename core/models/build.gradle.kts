@@ -1,11 +1,9 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.dagger.hilt.android)
 }
 
 android {
-    namespace = "com.telynet.telynetusers.core.data"
+    namespace = "com.telynet.telynetusers.core.models"
     compileSdk {
         version = release(37)
     }
@@ -25,14 +23,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
-
-    implementation(libs.hilt.android)
-    "ksp"(libs.hilt.compiler)
-
-    implementation(libs.rxjava)
-    implementation(libs.rxandroid)
-
-    implementation(project(":core:domain"))
-    implementation(project(":core:models"))
-    implementation(project(":core:database"))
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.junit)
 }

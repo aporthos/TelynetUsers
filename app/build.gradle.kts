@@ -92,4 +92,8 @@ dependencies {
     "ksp"(libs.moshi.kotlin.codegen)
 
     implementation(project(":feature:users"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
+    implementation(project(":core:designsystem"))
 }

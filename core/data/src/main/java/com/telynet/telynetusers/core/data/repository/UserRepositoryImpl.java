@@ -2,8 +2,8 @@ package com.telynet.telynetusers.core.data.repository;
 
 import com.telynet.telynetusers.core.database.dao.UserDao;
 import com.telynet.telynetusers.core.database.entity.UserEntity;
-import com.telynet.telynetusers.core.domain.entity.User;
 import com.telynet.telynetusers.core.domain.repository.UserRepository;
+import com.telynet.telynetusers.core.models.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;

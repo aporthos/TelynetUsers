@@ -1,7 +1,8 @@
 package com.telynet.telynetusers.core.domain.usecase;
 
-import com.telynet.telynetusers.core.domain.entity.User;
+
 import com.telynet.telynetusers.core.domain.repository.UserRepository;
+import com.telynet.telynetusers.core.models.entity.User;
 
 import javax.inject.Inject;
 

@@ -1,6 +1,6 @@
 package com.telynet.telynetusers.core.domain.repository;
 
-import com.telynet.telynetusers.core.domain.entity.User;
+import com.telynet.telynetusers.core.models.entity.User;
 
 import java.util.List;
 
