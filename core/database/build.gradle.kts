@@ -27,12 +27,9 @@ ksp {
 }
 
 dependencies {
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     testImplementation(libs.junit)
 
     implementation(libs.hilt.android)
-    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.rxjava3)
     implementation(libs.androidx.room.paging)

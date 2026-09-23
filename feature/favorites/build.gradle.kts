@@ -30,13 +30,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
 
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     testImplementation(libs.junit)
 
     implementation(libs.rxjava)
-    implementation(libs.rxandroid)
     implementation(libs.kotlinx.coroutines.reactive)
     implementation(libs.kotlinx.coroutines.rx3)
     implementation(libs.androidx.paging.compose)

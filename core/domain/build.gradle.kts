@@ -22,12 +22,9 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     testImplementation(libs.junit)
 
     implementation(libs.rxjava)
-    implementation(libs.rxandroid)
     implementation(libs.androidx.paging.common)
 
     implementation(libs.hilt.android)
