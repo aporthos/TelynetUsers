@@ -179,9 +179,3 @@ flowchart TD
 ```
 
 Or open the project in Android Studio and run the `app` configuration.
-
-## Known limitations
-
-- **No database migrations yet:** the Room database is still at `version = 1`, and the schema has changed during development (`address`, `imageUrl`, `company`, `isFavorite`). If an older build is installed, clear the app's data or uninstall it before running a new one.
-- **Chip counts read the whole table:** the visit filter counts come from loading every user; a `COUNT(*)` query would avoid that.
-- **Detail screen actions:** the call, directions and copy buttons on the detail screen are not wired up yet.

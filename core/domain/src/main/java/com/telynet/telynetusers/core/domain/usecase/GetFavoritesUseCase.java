@@ -17,9 +17,6 @@ public class GetFavoritesUseCase {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Emits the favorite users sorted by name, loaded in pages of 20.
-     */
     public Flowable<PagingData<User>> execute() {
         return userRepository.getFavoriteUsers();
     }

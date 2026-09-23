@@ -23,6 +23,7 @@ android {
 
 dependencies {
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
 
     implementation(libs.hilt.android)
     "ksp"(libs.hilt.compiler)

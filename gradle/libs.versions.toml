@@ -30,6 +30,7 @@ appcompat = "1.8.0"
 paging = "3.5.1"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.2"
+mockito = "5.24.0"
 
 [libraries]
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -74,6 +75,7 @@ androidx-room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", versio
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
