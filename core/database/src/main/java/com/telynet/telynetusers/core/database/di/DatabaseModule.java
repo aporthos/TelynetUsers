@@ -27,22 +27,14 @@ import dagger.hilt.components.SingletonComponent;
 @Module
 @InstallIn(SingletonComponent.class)
 public class DatabaseModule {
+
+    private static final String DATABASE_NAME = "telynet_users_db.db";
+
     @Provides
     @Singleton
-    public static AppDatabase provideDatabase(@ApplicationContext Context context, Provider<AppDatabase> databaseProvider) {
-        return Room.databaseBuilder(context, AppDatabase.class, "telynet_users_db")
-                .addCallback(new RoomDatabase.Callback() {
-                    @Override
-                    public void onCreate(@NonNull SupportSQLiteDatabase db) {
-                        super.onCreate(db);
-                        Executors.newSingleThreadExecutor().execute(() -> {
-                            UserDao userDao = databaseProvider.get().userDao();
-
-                            List<UserEntity> fakeUsers = FakeDataGenerator.generate200FakeUsers();
-                            userDao.insertAll(fakeUsers);
-                        });
-                    }
-                })
+    public static AppDatabase provideDatabase(@ApplicationContext Context context) {
+        return Room.databaseBuilder(context, AppDatabase.class, DATABASE_NAME)
+                .createFromAsset("database/" + DATABASE_NAME)
                 .build();
     }
 
