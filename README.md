@@ -2,6 +2,8 @@
 
 An Android app for field teams to browse a directory of users, track which ones have been visited, and keep a list of favorites. It is built as a multi-module Clean Architecture project that mixes **Java** (domain, data, database and a View-based screen) with **Kotlin + Jetpack Compose** (presentation).
 
+<img width="400" height="711" src="https://github.com/user-attachments/assets/61195f2c-012b-4367-ac33-3345bc6d38df" />
+
 ## Features
 
 - **User list:** paged list of users (20 per page) with search by name, a visit filter (All / Visited / Pending, with counts) and sorting by name or code, ascending or descending.
